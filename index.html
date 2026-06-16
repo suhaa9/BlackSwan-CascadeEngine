@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>CASCADE | Engine</title>
+    <!-- Minimalist Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Minimalist Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <h1 class="nav-logo">CASCADE</h1>
+            <div class="nav-links">
+                <a href="#simulation-section" class="nav-link">Simulation</a>
+                <a href="#outcome-section" class="nav-link">Outcome Analyst</a>
+                <a href="#analyzer-section" class="nav-link">Event Analyzer</a>
+                <a href="#glossary-section" class="nav-link">Glossary</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="bento-wrapper">
+        <!-- New Hero Header Section -->
+        <header class="hero-section animate-rise">
+            <h2 class="hero-label">Fracture Telemetry</h2>
+            <h1 class="hero-title">CASCADE</h1>
+            <div class="hero-accent"></div>
+        </header>
+
+        <!-- Main Simulation Section -->
+        <section id="simulation-section" class="bento-section">
+
+
+
+            <div class="bento-grid-simulation">
+                <!-- Controls Tile (Slider Based) -->
+                <section class="tile tile-controls">
+                    <div class="tile-header">
+                        <h2 class="tile-title">Stress Parameters</h2>
+                    </div>
+                    <div class="decision-mode-toggle">
+                        <button type="button" id="toggle-expert" class="toggle-btn">Expert Mode</button>
+                        <button type="button" id="toggle-decision" class="toggle-btn active">Decision Mode</button>
+                    </div>
+
+                    <form id="simulation-form" class="controls-form hidden">
+                        <div class="field">
+                            <div class="label-stack">
+                                <label>Network Density (e.g. 0.1, 0.5, 2.0)</label>
+                            </div>
+                            <input id="densities" type="text" value="0.1, 0.5, 1.0, 2.0, 5.0" class="input-field" />
+                        </div>
+
+                        <div class="field">
+                            <div class="label-stack">
+                                <label>System Scale (e.g. 10, 50, 100)</label>
+                            </div>
+                            <input id="dimension_scales" type="text" value="10, 50, 100, 250" class="input-field" />
+                        </div>
+
+                        <div class="field">
+                            <div class="label-stack">
+                                <label>Fault Zones (Regions)</label>
+                            </div>
+                            <input id="regions" type="number" value="20" class="input-field" />
+                        </div>
+
+                        <div class="field">
+                            <div class="label-stack">
+                                <label>What-if Cases (Scenarios)</label>
+                            </div>
+                            <input id="scenarios" type="number" value="10" class="input-field" />
+                        </div>
+
+                        <div class="field">
+                            <div class="label-stack">
+                                <label>Initial Shock Value</label>
+                            </div>
+                            <input id="initial_shock" type="number" value="1000000" class="input-field" />
+                        </div>
+
+                        <div class="field">
+                            <div class="label-stack">
+                                <label>Time Horizon (Units)</label>
+                            </div>
+                            <input id="time_units" type="number" value="12" class="input-field" />
+                        </div>
+
+                        <div class="field">
+                            <div class="label-stack">
+                                <label>Node Ceiling (Max Nodes)</label>
+                            </div>
+                            <input id="num_nodes" type="number" value="500" class="input-field" />
+                        </div>
+
+                        <button type="submit" id="run-btn" class="run-button">Run Fracture Test</button>
+                        <div class="backend-stages"></div>
+                    </form>
+
+                    <!-- Decision Mode (Natural Language) -->
+                    <div id="decision-mode-content" class="decision-grid">
+                        <div class="decision-card" data-scenario="isolated">
+                            <h4>Isolated Incident</h4>
+                            <p>Low density, limited scale. Minimal contagion risk.</p>
+                        </div>
+                        <div class="decision-card" data-scenario="regional">
+                            <h4>Regional Stress</h4>
+                            <p>Medium density, moderate impact. Potential for cluster failure.</p>
+                        </div>
+                        <div class="decision-card selected" data-scenario="systemic">
+                            <h4>Systemic Fragility</h4>
+                            <p>High density, critical scale. High risk of total collapse.</p>
+                        </div>
+                        <div class="decision-card" data-scenario="black_swan">
+                            <h4>Black Swan Event</h4>
+                            <p>Extreme shock, hyper-connected. Point of no return.</p>
+                        </div>
+                        <button type="button" id="decision-run-btn" class="run-button">Analyze Scenario</button>
+                        <div class="backend-stages"></div>
+                    </div>
+                </section>
+
+                <!-- Chart Tile -->
+                <section class="tile tile-chart">
+                    <div class="tile-header">
+                        <div class="header-stack">
+                            <p class="tile-subtitle">Mapping the exact threshold where interconnected systems collapse
+                            </p>
+                        </div>
+                        <div id="break-point-annotation" class="bp-alert hidden">BREAK_POINT</div>
+                    </div>
+                    <div class="viz-container">
+                        <canvas id="resultsChart"></canvas>
+                        <div id="empty-state" class="empty-state">
+                            <div class="loader-linear hidden" id="chart-loader"></div>
+                            <p id="empty-state-text">Set your stress parameters. Run the test. Find the break point.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Consolidated Metrics Row (Neutralized) -->
+            <div class="metrics-integrated-row">
+                <div class="tile tile-metric"
+                    data-tooltip="Measures systemic friction. It represents the computational and resource overhead required to prevent total system shutdown as risk propagates.">
+                    <h3 class="metric-label">Cascade Cost (µs)</h3>
+                    <span id="stat-latency" class="metric-value">—</span>
+                </div>
+                <div class="tile tile-metric"
+                    data-tooltip="The mathematical 'cliff.' Beyond this specific network density, the system enters an unrecoverable exponential failure state.">
+                    <h3 class="metric-label">Break Point</h3>
+                    <span id="stat-break" class="metric-value">—</span>
+                </div>
+                <div class="tile tile-metric"
+                    data-tooltip="The risk multiplier. A factor of 4.0 means the secondary cascading damage was four times the magnitude of the initial shock.">
+                    <h3 class="metric-label">Cascade Factor</h3>
+                    <span id="stat-cascade" class="metric-value">—</span>
+                </div>
+                <div class="tile tile-metric"
+                    data-tooltip="The structural complexity limit. Higher ceilings simulate more intricate, deeply interconnected institutional networks.">
+                    <h3 class="metric-label">Node Ceiling</h3>
+                    <span id="stat-nodes" class="metric-value">—</span>
+                </div>
+            </div>
+
+            <!-- Results Table Tile -->
+            <section id="results-table-tile" class="tile tile-table hidden">
+                <div class="tile-header">
+                    <h2 class="tile-title">Tabular Fracture Analysis</h2>
+                </div>
+                <div class="table-container">
+                    <table id="results-table">
+                        <thead>
+                            <tr id="table-head-row">
+                                <!-- Dynamic headers will be inserted here -->
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Dynamic data rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+
+        <!-- Outcome Analyst Section -->
+        <section id="outcome-section" class="bento-section">
+            <header class="section-banner">
+                <div class="header-stack">
+                    <h2 class="section-label">Post-Fracture Intelligence</h2>
+                    <h3 class="section-title">Outcome Analyst</h3>
+                </div>
+            </header>
+
+            <!-- Comprehensive Summary Tile -->
+            <div id="dynamic-analyst-tile" class="tile tile-analyst animate-rise">
+                <div class="analyst-header">
+                    <div class="analyst-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="3">
+                            <path
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h2 class="tile-title">Executive Risk Assessment</h2>
+                </div>
+                <div class="report-content">
+                    <div class="report-section">
+                        <h3>Scenario Verdict</h3>
+                        <p id="outcome-summary" class="report-body">No simulation data found. Please run a fracture test
+                            to generate an assessment.</p>
+                        <div id="outcome-chip" class="insight-chip">AWAITING_DATA</div>
+                    </div>
+                    <div class="report-section">
+                        <h3>Strategic Implications</h3>
+                        <p id="outcome-action" class="report-body">The analyst will provide mitigation strategies based
+                            on the observed break points.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric Translation Deep Dive (Full Width Resize) -->
+            <div class="tile tile-metrics-explanation animate-rise">
+                <div class="tile-header">
+                    <h2 class="tile-title">Objective Metric Translation</h2>
+                </div>
+                <div class="explanation-grid">
+                    <div class="explanation-item"
+                        data-tooltip="The 'Lag' of the crisis. Measures how hard the infrastructure is working to stay online.">
+                        <strong id="ex-latency-val">— µs</strong>
+                        <span>Cascade Cost</span>
+                        <p>This represents the "systemic friction." It measures how much resources the system
+                            consumes to prevent a total shutdown as risk propagates.</p>
+                    </div>
+                    <div class="explanation-item"
+                        data-tooltip="The point of no return. The exact density where structural integrity vanishes.">
+                        <strong id="ex-break-val">Safe</strong>
+                        <span>Break Point</span>
+                        <p>The exact density where the math "breaks." Beyond this point, any further shock causes an
+                            exponential, unrecoverable failure.</p>
+                    </div>
+                    <div class="explanation-item"
+                        data-tooltip="The intensity multiplier. Shows how much the problem grew from its original size.">
+                        <strong id="ex-factor-val">1.00x</strong>
+                        <span>Cascade Factor</span>
+                        <p>The intensity multiplier. A factor of 4.0 means the resulting damage was 4 times the size
+                            of the initial problem.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Analyzer Section -->
+        <section id="analyzer-section" class="bento-section">
+            <header class="section-banner">
+                <div class="header-stack">
+                    <h2 class="section-label">Real-World Case Mapping</h2>
+                    <h3 class="section-title">Event Analyzer</h3>
+                </div>
+            </header>
+
+            <!-- Template Selection Tile -->
+            <div class="analyzer-layout">
+                <div class="tile tile-templates">
+                    <div class="tile-header">
+                        <h2 class="tile-title">Select Historical or Hypothetical Template</h2>
+                    </div>
+
+                    <div class="template-dropdown-wrapper">
+                        <button id="template-dropdown-btn" class="dropdown-trigger">
+                            <span>Select an event scenario...</span>
+                            <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+                        <div id="template-dropdown-list" class="dropdown-content">
+                            <!-- Templates will be injected here -->
+                        </div>
+                    </div>
+
+                    <div id="selected-template-details" class="template-details hidden">
+                        <h3 id="template-event-name" class="detail-event-title"></h3>
+                        <p id="template-event-desc" class="detail-event-desc"></p>
+                    </div>
+                </div>
+
+                <!-- Translation Logic Tile -->
+                <div class="tile tile-translation">
+                    <div class="tile-header">
+                        <h2 class="tile-title">Data-to-Parameter Translation</h2>
+                    </div>
+                    <div id="translation-grid" class="translation-grid">
+                        <div class="translation-item">
+                            <div class="t-label">Real-World Factor</div>
+                            <div class="t-arrow">→</div>
+                            <div class="t-label">Model Input</div>
+                        </div>
+                        <div class="translation-item">
+                            <div id="rw-complexity" class="t-value">Interconnectedness</div>
+                            <div class="t-arrow">→</div>
+                            <div id="mi-density" class="t-param">Network Density</div>
+                        </div>
+                        <div class="translation-item">
+                            <div id="rw-scope" class="t-value">Geographic Spread</div>
+                            <div class="t-arrow">→</div>
+                            <div id="mi-regions" class="t-param">Fault Zones</div>
+                        </div>
+                        <div class="translation-item">
+                            <div id="rw-severity" class="t-value">Shock Intensity</div>
+                            <div class="t-arrow">→</div>
+                            <div id="mi-shock" class="t-param">Initial Shock</div>
+                        </div>
+                    </div>
+                    <div class="translation-action">
+                        <button id="apply-template-btn" class="run-button">Apply Template & Run Model</button>
+                        <div class="backend-stages hidden"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contextual Analysis Tile -->
+            <div class="tile tile-contextual">
+                <div class="tile-header">
+                    <h2 class="tile-title">Risk Cube Analysis</h2>
+                </div>
+                <div id="risk-cube-viz" class="risk-cube-viz">
+                    <div class="cube-dim">
+                        <strong>Assets At Risk:</strong>
+                        <ul id="assets-list"></ul>
+                    </div>
+                    <div class="cube-dim">
+                        <strong>Affected Regions:</strong>
+                        <ul id="regions-list"></ul>
+                    </div>
+                    <div class="cube-dim">
+                        <strong>Simulation Scenarios:</strong>
+                        <ul id="scenarios-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- Glossary Section -->
+        <section id="glossary-section" class="bento-section">
+            <header class="section-banner">
+                <div class="header-stack">
+                    <h2 class="section-label">Lexicon</h2>
+                    <h3 class="section-title">Glossary / Reference</h3>
+                </div>
+            </header>
+
+            <!-- Detailed About Section -->
+            <div class="tile tile-about">
+                <div class="tile-header">
+                    <h2 class="tile-title">Understanding the CASCADE Engine</h2>
+                </div>
+                <div class="about-content">
+                    <p>
+                        Imagine a massive web of interconnected assets like power grids, banks, or supply lines.
+                        In a healthy state, the web is flexible. But as it becomes more <strong>dense</strong> and
+                        tightly packed,
+                        a single point of failure can no longer be contained. It spreads like a wildfire.
+                    </p>
+                    <p>
+                        This is the <strong>"Jenga Effect"</strong>: as you add more connections (Density), the
+                        system
+                        becomes more
+                        efficient but also more fragile. The <strong>CASCADE Risk Engine</strong> puts this web
+                        under
+                        extreme pressure.
+                        By sliding the controls below, you define the "Stress Vacuum"--essentially setting up a
+                        disaster
+                        scenario
+                        to see if your network survives or snaps.
+                    </p>
+                    <p>
+                        When you click <strong>Run Fracture Test</strong>, the engine instantly calculates thousands
+                        of
+                        potential futures,
+                        finding the exact "Break Point" where your network would cross the point of no return.
+                    </p>
+                </div>
+            </div>
+
+            <section class="tile tile-glossary">
+                <!-- Part 1: How to Set Your Simulation (Inputs) -->
+                <div class="glossary-grid">
+                    <div class="glossary-item">
+                        <strong class="glossary-term">Network Density</strong>
+                        <p class="glossary-body">How crowded the network is. High density means assets are pulled tight,
+                            so a small shake travels much faster across the whole system.</p>
+                    </div>
+                    <div class="glossary-item">
+                        <strong class="glossary-term">System Scale</strong>
+                        <p class="glossary-body">The number of items we test at once. Larger scales show how big systems
+                            handle stress differently compared to small ones.</p>
+                    </div>
+                    <div class="glossary-item">
+                        <strong class="glossary-term">Fault Zones</strong>
+                        <p class="glossary-body">Specific areas prone to errors. More zones mean the risk is spread
+                            across more entry points where things could go wrong.</p>
+                    </div>
+                    <div class="glossary-item">
+                        <strong class="glossary-term">What-if Cases</strong>
+                        <p class="glossary-body">Total random trials. We run the test many times to find the most likely
+                            average outcome, rather than just one lucky result.</p>
+                    </div>
+                    <div class="glossary-item">
+                        <strong class="glossary-term">Time Horizon</strong>
+                        <p class="glossary-body">How long the clock runs during the test. Captures both instant crashes
+                            and slow-moving failures that rot the system over time.</p>
+                    </div>
+                    <div class="glossary-item">
+                        <strong class="glossary-term">Node Ceiling</strong>
+                        <p class="glossary-body">The hard limit on how many nodes can exist. This keeps the simulation
+                            within a fixed playground so results stay consistent.</p>
+                    </div>
+                    <div class="glossary-item">
+                        <strong class="glossary-term">Initial Shock Value</strong>
+                        <p class="glossary-body">The size of the "first hit" to the system. Higher numbers simulate a
+                            major crisis like a sudden market crash or power failure.</p>
+                    </div>
+                </div>
+
+                <!-- Metrics Definitions Divider -->
+                <div class="glossary-divider"></div>
+
+                <!-- Part 2: How to Measure results (Metrics) -->
+                <div class="glossary-grid">
+                    <div class="glossary-item">
+                        <strong class="glossary-term">Cascade Cost</strong>
+                        <p class="glossary-body">The "lag" or extra effort needed to deal with the crash. Higher cost
+                            means the system is choking under the weight of the failure.</p>
+                    </div>
+                    <div class="glossary-item">
+                        <strong class="glossary-term">Break Point</strong>
+                        <p class="glossary-body">The exact density where everything snaps. It's the "point of no return"
+                            where the network can no longer stay stable.</p>
+                    </div>
+                    <div class="glossary-item">
+                        <strong class="glossary-term">Cascade Factor</strong>
+                        <p class="glossary-body">Measure of how much the risk multiplied. A factor of 5.0 means the
+                            total damage was five times worse than the first hit.</p>
+                    </div>
+                </div>
+            </section>
+        </section>
+        <!-- Premium Branding Section -->
+        <section id="branding-section" class="bento-section branding-footer">
+            <div class="branding-inner">
+                <div class="branding-top">
+                    <h2 class="branding-tagline">Predict the Fracture</h2>
+                    <div class="branding-nav">
+                        <div class="nav-col">
+                            <a href="#">Download Engine</a>
+                            <a href="#">Simulations</a>
+                            <a href="#">Documentation</a>
+                            <a href="#">Fracture Logs</a>
+                            <a href="#">Global Nodes</a>
+                        </div>
+                        <div class="nav-col">
+                            <a href="#">Intelligence Blog</a>
+                            <a href="#">Tier Pricing</a>
+                            <a href="#">Institution Cases</a>
+                        </div>
+                    </div>
+                </div>
+                <h1 class="huge-branding-text">CASCADE</h1>
+                <div class="branding-bottom">
+                    <div class="branding-logo-mini">CASCADE ENGINE</div>
+                    <div class="branding-legal">
+                        <a href="#">About</a>
+                        <a href="#">Infrastructure</a>
+                        <a href="#">Privacy</a>
+                        <a href="#">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bento-footer">
+        <p>&copy; 2026 CASCADE RISK ENGINE | INSTITUTIONAL VERSION</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

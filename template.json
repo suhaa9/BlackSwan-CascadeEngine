@@ -1,0 +1,64 @@
+{
+    "simulations": [
+        {
+            "event": "Lehman Brothers Bankruptcy",
+            "stress_parameters": {
+                "density": 8.0,
+                "scale": "Systemic Finance",
+                "shock_magnitude": 1.0,
+                "propagation_type": "liquidity_contagion",
+                "time_horizon": "T+14_Days"
+            },
+            "risk_cube_dimensions": {
+                "assets": ["MBS_Tranches", "Interbank_Lending", "Equity_Derivatives"],
+                "regions": ["Wall_Street", "London_City", "EU_Banking_Union"],
+                "scenarios": ["Sudden_Default", "Market_Freeze"]
+            }
+        },
+        {
+            "event": "CrowdStrike Global Outage",
+            "stress_parameters": {
+                "density": 1.0,
+                "scale": "Cyber Infrastructure",
+                "shock_magnitude": 0.88,
+                "propagation_type": "broadcast_failure",
+                "time_horizon": "T+48_Hours"
+            },
+            "risk_cube_dimensions": {
+                "assets": ["Azure_Endpoints", "SaaS_Platforms", "ATM_Networks"],
+                "regions": ["Global_Nodes"],
+                "scenarios": ["Kernel_Level_Fault", "Manual_Recovery_Delay"]
+            }
+        },
+        {
+            "event": "Hormuz Blockade",
+            "stress_parameters": {
+                "density": 2.0,
+                "scale": "Global Energy",
+                "shock_magnitude": 0.9,
+                "propagation_type": "supply_choke",
+                "time_horizon": "T+14_Days"
+            },
+            "risk_cube_dimensions": {
+                "assets": ["Crude_Oil_Tankers", "LNG_Carriers", "Global_Fuel_Prices"],
+                "regions": ["Strait_of_Hormuz", "Persian_Gulf", "Global_Energy_Markets"],
+                "scenarios": ["Total_Closure", "Escorted_Passage"]
+            }
+        },
+        {
+            "event": "TSMC Fab Disruption",
+            "stress_parameters": {
+                "density": 8.0,
+                "scale": "Tech Supply Chain",
+                "shock_magnitude": 0.85,
+                "propagation_type": "bottleneck_starvation",
+                "time_horizon": "T+6_Months"
+            },
+            "risk_cube_dimensions": {
+                "assets": ["5nm_Logic_Wafers", "Consumer_Electronics", "Auto_Semiconductors"],
+                "regions": ["Hsinchu_Park", "Shenzhen_Logistics", "Global_Auto_Hubs"],
+                "scenarios": ["Seismic_Event", "Geopolitical_Blockade"]
+            }
+        }
+    ]
+}
